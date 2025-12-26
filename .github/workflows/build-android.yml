@@ -20,7 +20,7 @@ jobs:
       
       - name: Set up Android NDK
         run: |
-          curl -s "https://dl.google.com/android/repository/android-ndk-r25b-linux.zip" -o ndk.zip
+          curl -s "https://dl.google.com/android/repository/android-ndk-r26d-linux.zip" -o ndk.zip
           unzip -q -o ndk.zip -d .ndk
           echo "ANDROID_NDK_ROOT=$PWD/.ndk/$(ls .ndk)" >> $GITHUB_ENV
       
