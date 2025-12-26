@@ -5,33 +5,24 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
+          distribution: 'adopt'
           java-version: '17'
-          distribution: 'temurin'
       
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Prerequisites
+        run: ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --uninstall "cmake;3.10.2.4988404" "cmake;3.18.1" || true
       
-      - name: Install NDK
-        run: sdkmanager "ndk;26.1.10909125"
-      
-      - name: Install dependencies
+      - name: Set up Android NDK
         run: |
-          sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool pkg-config curl git cmake nasm yasm
-      
-      - name: Set environment variables
-        run: |
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+          curl -s "https://dl.google.com/android/repository/android-ndk-r25b-linux.zip" -o ndk.zip
+          unzip -q -o ndk.zip -d .ndk
+          echo "ANDROID_NDK_ROOT=$PWD/.ndk/$(ls .ndk)" >> $GITHUB_ENV
       
       - name: Build FFmpegKit
         run: |
@@ -42,8 +33,11 @@ jobs:
             --disable-arm-v7a \
             --disable-arm-v7a-neon \
             --disable-x86 \
-            --disable-x86-64 \
-            --skip-cpu-features
+            --disable-x86-64
+      
+      - name: Print build logs
+        if: always()
+        run: cat build.log
       
       - name: Upload AAR
         uses: actions/upload-artifact@v4
